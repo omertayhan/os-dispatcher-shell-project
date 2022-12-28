@@ -1,0 +1,54 @@
+package dispatcher;
+
+import java.util.LinkedList;
+import java.util.List;
+
+public class Interlayer {
+	private static Queue RealTimeProcess=null;
+	private static Queue UserBasedProcess=null;
+	
+	public static void Decomposition(Queue ProcessList){
+		RealTimeProcess = new Queue(ProcessList.getSize());
+		UserBasedProcess=new Queue();
+		for(int i =0;i<ProcessList.size();i++) 
+		{
+
+			if(ProcessList.get(i).Priority==0) 
+			{
+				RealTimeProcess.add(ProcessList.get(i));
+				
+			}
+			else
+			{
+				UserBasedProcess.add(ProcessList.get(i));			
+			}
+
+
+		}
+		GeneralFunctions.bubbleSortWithArrivalTime(RealTimeProcess);
+		GeneralFunctions.bubbleSortWithArrivalTime(UserBasedProcess);
+		GeneralFunctions.bubbleSortWithPriority(UserBasedProcess);
+		/*
+		System.out.println("RealTime Processler\n");
+		for(int i =0;i<RealTimeProcess.size();i++){
+			System.out.println(RealTimeProcess.get(i).PID + " PID");
+			System.out.println(RealTimeProcess.get(i).ArrivalTime +" AT");
+			System.out.println(RealTimeProcess.get(i).Priority +" Priority");
+			System.out.println(RealTimeProcess.get(i).BurstTime+ " BT");
+		}
+		System.out.println("\nUserBased Processler\n");
+		for(int i =0;i<UserBasedProcess.size();i++){
+			System.out.println(UserBasedProcess.get(i).PID + " PID");
+			System.out.println(UserBasedProcess.get(i).ArrivalTime +" AT");
+			System.out.println(UserBasedProcess.get(i).Priority +" Priority");
+			System.out.println(UserBasedProcess.get(i).BurstTime+ " BT");
+		}
+		*/
+		ProcessDispatcher a = new ProcessDispatcher();
+		a.RunDispatcher(RealTimeProcess,UserBasedProcess);
+	} 
+	private int[] getProcessTypeCount() 
+	{
+		
+	}
+}

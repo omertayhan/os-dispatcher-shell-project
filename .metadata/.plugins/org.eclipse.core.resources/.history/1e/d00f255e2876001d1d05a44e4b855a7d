@@ -1,0 +1,20 @@
+package dispatcher;
+
+import java.io.IOException;
+import java.util.List;
+
+public class Program {
+
+	public static void main(String[] args) {
+		Queue Processler = null;
+		try {
+			GeneralFunctions Run = new GeneralFunctions();
+			Processler=Run.ReadFile("test.txt");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Interlayer.Decomposition(Processler);
+
+	}
+			
+}

@@ -1,0 +1,10 @@
+package dispatcher;
+import java.util.UUID;
+
+public class Process {
+	
+	public UUID PID;
+	public int ArrivalTime;
+	public int Priority;
+	public int BurstTime;
+}

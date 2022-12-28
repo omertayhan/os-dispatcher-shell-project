@@ -1,0 +1,54 @@
+package dispatcher;
+
+import java.util.LinkedList;
+import java.util.List;
+
+public class Interlayer {
+	private static LinkedList<Process> RealTimeProcess=null;
+	private static LinkedList<Process> UserBasedProcess=null;
+	
+	public static void Decomposition(List<Process> ProcessList){
+		RealTimeProcess = new LinkedList<Process>();
+		UserBasedProcess=new LinkedList<Process>();
+		for(int i =0;i<ProcessList.size();i++) 
+		{
+
+			if(ProcessList.get(i).Priority==0) 
+			{
+				RealTimeProcess.add(ProcessList.get(i));
+				
+			}
+			else
+			{
+				UserBasedProcess.add(ProcessList.get(i));
+			}
+
+
+		}
+	}
+	private void SortRealTimeProcesses() {
+	
+		for(int i =0;i<RealTimeProcess.size();i++) 
+		{
+			
+			
+		}
+	}
+	public class BubbleSortExample {  
+	    static void bubbleSort(LinkedList<Process> arr) {  
+	        int n = arr.size();  
+	        int temp = 0;  
+	         for(int i=0; i < n; i++){  
+	                 for(int j=1; j < (n-i); j++){  
+	                          if(arr[j-1] > arr[j]){  
+	                                 //swap elements  
+	                                 temp = arr[j-1];  
+	                                 arr[j-1] = arr[j];  
+	                                 arr[j] = temp;  
+	                         }  
+	                          
+	                 }  
+	         }  
+	  
+	    }  	
+}

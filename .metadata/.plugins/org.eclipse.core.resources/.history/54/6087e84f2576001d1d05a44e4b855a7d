@@ -1,0 +1,82 @@
+package dispatcher;
+
+import java.util.Arrays;
+
+public class Queue {
+	int ilk; 
+    int son; 
+    int kapasite; 
+    Process dizi[]; 
+    int prosesSayisi;
+        
+    public Queue(){
+        this.ilk = 0;
+        this.son=-1;
+        this.dizi = new Process[1];
+        this.son = -1;
+        this.kapasite = 0;   
+        this.prosesSayisi=0;
+    }
+     
+    public Process get(int index)
+    {
+    	return dizi[index];
+    }
+    public int getSize() {
+    	return dizi.length;
+    }
+    public void ekle(Process nesne){ 
+        if(son==kapasite-1){
+            genislet(kapasite);
+        }
+        else{
+            son++;
+            prosesSayisi++;
+            dizi[son]=nesne;
+        }
+    }
+    private void genislet(int boyut) {
+		// TODO Auto-generated method stub
+		Process yeniDizi[];
+		yeniDizi=Arrays.copyOf(dizi, boyut+kapasite);
+		son=prosesSayisi-1;
+		ilk=0;
+		dizi=yeniDizi;
+		kapasite+=boyut;
+	}
+
+	public void degistir(int index,Process nesne){ 
+ 
+           dizi[index]=nesne;
+    }
+    
+    public Process pop(){ 
+        if(!isEmpty()){
+        	Process temp = this.dizi[this.back];
+            this.back = (this.back+1)%this.len;
+            totalCount--;
+            return temp;
+             
+        }else{
+            System.out.println("Kuyruk boþ");
+            return null;
+        }
+    }
+     
+    public boolean isEmpty(){
+        if(prosesSayisi == 0){
+            return true;
+        }else{
+            return false;
+        }
+    }
+     
+    public boolean doluMu(){
+        if(prosesSayisi!=0){
+            return true;
+        }else{
+            return false;
+        }
+    }
+   
+}

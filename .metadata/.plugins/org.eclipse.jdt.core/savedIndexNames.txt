@@ -1,0 +1,4 @@
+INDEX VERSION 1.131+C:\Users\nsc9\OneDrive\Masaüstü\Proje2023\.metadata\.plugins\org.eclipse.jdt.core
+1865797976.index
+3303815218.index
+3959137331.index

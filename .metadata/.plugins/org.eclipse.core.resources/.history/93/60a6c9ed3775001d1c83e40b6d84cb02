@@ -1,0 +1,77 @@
+package dispatcher;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
+
+public class GeneralFunctions {
+	public List<Process> ProcessListFromText = new ArrayList<Process>();
+	public List<Process> ReadFile(String filePath) throws IOException
+	{
+		File file = new File(filePath);
+		FileReader fileReader = new FileReader(file);
+		String line;
+
+		BufferedReader br = new BufferedReader(fileReader);
+		while ((line = br.readLine()) != null) 
+		{		
+			String[] parsedProcess = line.split(",");
+			Process T = new Process();
+			T.PID=UUID.randomUUID();
+			T.ArrivalTime=Integer.valueOf(parsedProcess[0]);
+			T.Priority=Integer.valueOf(parsedProcess[1]);
+			T.BurstTime=Integer.valueOf(parsedProcess[2]);
+			ProcessListFromText.add(T);
+		}
+		br.close();
+		return ProcessListFromText;	
+	}
+	  public static void bubbleSortWithArrivalTime(LinkedList<Process> arr) 
+	  {  
+	        int n = arr.size();  
+	        Process temp = null;  
+	         for(int i=0; i < n; i++)
+	         {  
+	                 for(int j=1; j < (n-i); j++)
+	                 {  
+	                          if(arr.get(j-1).ArrivalTime > arr.get(j).ArrivalTime)
+	                          {  
+	                                 //swap elements  
+	                                 temp = arr.get(j-1);  
+	                                 arr.set(j-1, arr.get(j));
+	                                 arr.set(j, temp);
+	                         }  
+	                          
+	                 }  
+	         }  
+	  
+	    }
+	  public static void bubbleSortWithPriority(LinkedList<Process> arr) //OPTÝMÝZASYON ÖRNEÐÝDÝR
+	  {  
+	        int n = arr.size();  
+	        Process temp = null;  
+	         for(int i=0; i < n; i++)
+	         {  
+	                 for(int j=1; j < (n-i); j++)
+	                 {  
+	                	 if(arr.get(j-1).ArrivalTime==arr.get(j).ArrivalTime) {
+	                		 if(arr.get(j-1).Priority < arr.get(j).Priority)
+	                          {  
+	                                 //swap elements  
+	                                 temp = arr.get(j-1);  
+	                                 arr.set(j-1, arr.get(j));
+	                                 arr.set(j, temp);
+	                         }  
+	                	 }
+	                	 else
+	                		 continue;                                               
+	                 }  
+	         }  
+	  
+	    }
+}

@@ -1,0 +1,222 @@
+package dispatcher;
+
+import java.util.Timer;
+import java.util.TimerTask;
+
+
+public class ProcessDispatcher extends TimerTask {
+	private static Queue RealTimeProcess;
+	private static Queue UserBasedProcess1;
+	private static Queue UserBasedProcess2;
+	private static Queue UserBasedProcess3;
+	private static int timer=0;
+	private static int terminateCounter=0;
+	private static int tempTimer=-1;
+
+	@Override
+	public void run() {
+		System.out.println("Saniye  = "+timer);
+		if(RealTimeProcess.getSize()!=0)
+		{
+			for(int i=RealTimeProcess.ilk;i<=RealTimeProcess.son;i++)
+			{		
+				if(RealTimeProcess.getir(i).ArrivalTime==timer)
+				{
+					ChangeSituationOfProcess(i,ProcessSituation.READY,ProcessType.REALTIME);	
+					if(!HaveRealTimeRunningProcess()&&tempTimer!=timer) //USER PROCESSÝN KESÝLMESÝ DURUMU DEÐERLENDÝRÝLECEK.
+						{
+							RunRealTimeProcess(i);
+							continue;
+						}
+				}
+				if(HaveRealTimeRunningProcess(i)) 
+					{
+						RunRealTimeProcess(i);
+						continue;
+					}			
+				if(RealTimeProcess.getir(i).ProcessSituation==ProcessSituation.READY &&
+					!HaveRealTimeRunningProcess()&&
+					tempTimer!=timer)
+					{
+						RunRealTimeProcess(i);
+					}
+			}
+		}
+		if(UserBasedProcess1.getSize()!=0)
+		{
+			for(int k=UserBasedProcess1.ilk;k<=UserBasedProcess1.son;k++) 
+			{
+				if(UserBasedProcess1.getir(k).ArrivalTime==timer) 
+				{
+					ChangeSituationOfProcess(k,ProcessSituation.READY,ProcessType.USERBASED1);
+					if(!HaveRealTimeRunningProcess()&&tempTimer!=timer)
+					{
+						RunRealTimeProcess(i);
+						continue;
+					}
+				}
+			}
+		}
+		
+		
+		
+		timer++;
+				
+		
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public static void RunDispatcher(Queue realTimeProcesses,Queue userBasedProcesses1,
+			Queue userBasedProcesses2,Queue userBasedProcesses3)
+	{		
+		System.out.println("Merhaba, iþleme baþlýyoruz.\n");
+		RealTimeProcess=realTimeProcesses;
+		UserBasedProcess1=userBasedProcesses1;
+		UserBasedProcess2=userBasedProcesses2;
+		UserBasedProcess3=userBasedProcesses3;
+
+		Timer timer = new Timer();
+		TimerTask task = new ProcessDispatcher();
+		timer.schedule(task,0,1000);
+	}
+	
+	private void ChangeSituationOfProcess(int index,ProcessSituation situation,ProcessType type) 
+	{
+		Process p = new Process();
+		p.ProcessSituation=situation;
+		switch(type) 
+		{
+			case REALTIME:
+			{
+				p=RealTimeProcess.getir(index);
+				RealTimeProcess.degistir(index, p);		
+				break;
+			}
+			case USERBASED1:
+			{
+				p=UserBasedProcess1.getir(index);
+				UserBasedProcess1.degistir(index, p);	
+				break;
+			}
+			case USERBASED2:
+			{
+				p=UserBasedProcess2.getir(index);
+				UserBasedProcess2.degistir(index, p);	
+				break;
+			}
+		case USERBASED3:
+			{
+				p=UserBasedProcess3.getir(index);
+				UserBasedProcess3.degistir(index, p);	
+				break;
+			}
+		default:
+			break;
+		
+		}	
+		switch(situation) {
+		case READY:
+		{
+			System.out.println(p.PID + "numaralý prosesin durumu "+ situation.name().toString() + " olarak deðiþtirildi ");
+			break;
+		}
+		case INTERRUPTED:
+		{
+			System.out.println(p.PID + " numaralý prosess 20 saniyeyi geçtiði için güvenlik olarak askýya alýndý - " + situation.name().toString());
+			break;
+		}	
+		case RUNNING:
+		{			
+			System.out.println(p.PID + " numaralý proses þuan yürütülüyor");
+			break;
+		}	
+		case TERMINATED:
+		{			
+			System.out.println(p.PID + "numaralý proses sonlandýrýldý.");
+			break;
+		}
+			
+		default:
+			break;
+		}
+		
+	}
+	private void RunRealTimeProcess(int index,ProcessType type) 
+	{			
+		Process p = new Process();	
+		switch(type) 
+		{
+		case REALTIME:
+		{		
+			terminateCounter++;
+			p=RealTimeProcess.getir(index);
+			ChangeSituationOfProcess(index,ProcessSituation.RUNNING,ProcessType.REALTIME);
+
+			if(terminateCounter>=20) 
+			{
+				ChangeSituationOfProcess(index,ProcessSituation.INTERRUPTED,ProcessType.REALTIME);
+				terminateCounter=0;
+				RealTimeProcess.cikar();
+				return;
+			}	
+			p.BurstTime--;
+			if(p.BurstTime==0) 
+			{
+				terminateCounter=0;
+				ChangeSituationOfProcess(index,ProcessSituation.TERMINATED,ProcessType.REALTIME);
+				tempTimer=timer;
+				RealTimeProcess.cikar();
+				return;
+			}
+			RealTimeProcess.degistir(index, p);
+			break;
+		}		
+		case USERBASED1:
+		{
+			p=UserBasedProcess1.getir(index);
+			p.BurstTime--;
+			ChangeSituationOfProcess(index,ProcessSituation.RUNNING,ProcessType.USERBASED1);
+			if(p.BurstTime==0) 
+			{
+				ChangeSituationOfProcess(index,ProcessSituation.TERMINATED,ProcessType.USERBASED1);
+				tempTimer=timer;
+				UserBasedProcess1.cikar();
+				return;
+			}
+			p.Priority=2;
+			UserBasedProcess1.cikar();
+			break;
+		}
+		case USERBASED2:
+			break;
+		case USERBASED3:
+			break;
+		default:
+			break;		
+		}
+
+	
+	}
+	private boolean HaveRealTimeRunningProcess(int index) 
+	{
+		if(RealTimeProcess.getir(index).ProcessSituation==ProcessSituation.RUNNING)
+		{
+			return true;
+		}
+		else
+			return false;
+	}
+	private boolean HaveRealTimeRunningProcess() 
+	{
+		for(int i=RealTimeProcess.ilk;i<=RealTimeProcess.son;i++)
+		{
+			if(RealTimeProcess.getir(i).ProcessSituation==ProcessSituation.RUNNING)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+}

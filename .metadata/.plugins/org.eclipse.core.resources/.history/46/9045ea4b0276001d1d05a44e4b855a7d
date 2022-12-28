@@ -1,0 +1,65 @@
+package dispatcher;
+
+public class Queue {
+	int len; 
+    int fore; 
+    int back; 
+    Process dizi[]; 
+    int totalCount;
+        
+    public Queue(int N){
+        this.len = N;
+        this.dizi = new Process[this.len];
+        this.fore = -1;
+        this.back = 0;
+         
+    }
+     
+    public Process get(int index)
+    {
+    	return dizi[index];
+    }
+    public int getSize() {
+    	return dizi.length;
+    }
+    public void put(Process nesne){ 
+        if(!isFull()){
+            this.fore = (this.fore+1)%this.len;
+            this.dizi[this.fore] = nesne;
+            totalCount++;
+        }
+        else{
+            System.out.println("Kuyruk dolu");
+        }
+    }
+    
+    public Process pop(){ 
+        if(!isEmpty()){
+        	Process temp = this.dizi[this.back];
+            this.back = (this.back+1)%this.len;
+            totalCount--;
+            return temp;
+             
+        }else{
+            System.out.println("Kuyruk boþ");
+            return null;
+        }
+    }
+     
+    public boolean isEmpty(){
+        if(totalCount == 0){
+            return true;
+        }else{
+            return false;
+        }
+    }
+     
+    public boolean isFull(){
+        if(totalCount == this.len){
+            return true;
+        }else{
+            return false;
+        }
+    }
+   
+}

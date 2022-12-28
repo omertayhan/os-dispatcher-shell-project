@@ -1,0 +1,6 @@
+package dispatcher;
+
+public class InterruptedProcess {
+	public String PID;
+	public int InterruptedTime;
+}

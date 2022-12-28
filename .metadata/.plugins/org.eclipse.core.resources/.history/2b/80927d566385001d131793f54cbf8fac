@@ -1,0 +1,477 @@
+package dispatcher;
+
+import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
+
+
+public class ProcessDispatcher extends TimerTask {
+	//Kuyruk tanýmlamalarý
+	private static Queue RealTimeProcess;
+	private static Queue UserBasedProcess1;
+	private static Queue UserBasedProcess2;
+	private static Queue UserBasedProcess3;
+	
+	private static int timer=0; //Sayýcý
+	
+	
+	private static int tempTimer=-1; //Ayný saniye içeriisnde 2 prosesin çalýþmasýný engelleyen sayaç
+	/*Bir proses sonlandýktan sonra baþka bir proses vardýðýnda, o an varmýþ bulunan proses halihazýrda çalýþmakta olan 
+	baþka bir proses bulunmadýðýndan hazýr duruma geçer geçmez çalýþma eðilimi gösteriyordu halbuki o saniye içerisinde baþka 
+	bir proses çalýþmýþtý ve þu an hazýr duruma geçen prosesin bir sonraki saniyeyi beklemesi gerekiyordu bu sebeple 
+	bir proses sonlandýðýanda bu sayacý o an ki saniyeye eþitledik ve o saniye içerinde baþka bir prosesin çalýþmasýný 
+	engellemiþ olduk.*/
+	
+	//Zamanlayýcý tanýmalamsý
+	private static Timer Timer;
+
+	@Override
+	public void run() { //Dispatcher baþlýyor.
+		System.out.println("Saniye  = "+timer); //Saniye ekrana basýlýyor.
+		if(RealTimeProcess.getSize()!=0)
+		//Kuyruk dönülmden once optimizasyon amacýyla boþ olup olmadýðý kontrol ediliyor
+		{
+			for(int i=RealTimeProcess.ilk;i<=RealTimeProcess.son;i++)
+			//Gerçek zamanlý kuyuðun elemanlarý dönülüyor
+			//Bu kuyruk boþalmadan diðer prosesler baþlamamlý bu sebeple ilk olarak bu kuyruk dönülüyor.
+			{		
+				if(RealTimeProcess.getir(i).ArrivalTime==timer)
+				//O saniye içerisinde varan bir proses varsa içerisi çalýþacak.
+				{
+					try {
+						//Varan proses "READY" durumuna çekilerek çalýþmaya hazýr hale geliyor.
+						ChangeSituationOfProcess(i,ProcessSituation.READY,ProcessType.REALTIME);
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}	
+					if(!HaveRealTimeRunningProcess()&&tempTimer!=timer) 
+					/*O saniye içerisinde çalýþmakta olan bir gerçek zamanlý proses var mý? (!HaveRealTimeRunningProcess())
+					  O saniye içerisinde çalýþýp sonlanmýþ bir proses(dolayýsýyla durumu "RUNNING" deðil) var mý? (tempTimer!=timer)
+					  Bu kontrollerden geçilirse bir mani olmadýðýndan prosesin çalýþmasýna izin veriliyor. */
+						{
+							try {
+								RunProcess(i,ProcessType.REALTIME); //Proses çalýþtýrýlýyor.
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							continue;
+						}
+				}
+				if(HaveRealTimeRunningProcess(i)) 
+				/*Yukardaki kontrolde, içerisinde bulunduðumuz saniyede çalýþmakta olan bir prosesin olma durumunu çalýþmaya
+				  engel bir durum telakki ettik. Halbuki çalýþmakta olan proses zaten kendisi ise çalýþmaya devam etmesi gerekir.
+				  Bu kontrol çalýþmakta olan prosesin þu an üzerinde olduðumuz proses olup olmadýðýný kontrol eder.*/
+					{
+						try {
+							//Çalýþmakta olan prosesin çalýþmasýný devam etirmesine izin verilir.
+							RunProcess(i,ProcessType.REALTIME);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						continue;
+					}			
+				if(RealTimeProcess.getir(i).ProcessSituation==ProcessSituation.READY &&
+					!HaveRealTimeRunningProcess()&&
+					tempTimer!=timer)
+					/*Þu an üzerinde bulunduðumuz proses çalýþmaya hazýr durumda mý (RealTimeProcess.getir(i).ProcessSituation==ProcessSituation.READY)?
+					  Þu an çalýþmakta olan baþka bir gerçek zamanlý proses var mý (!HaveRealTimeRunningProcess())?
+					  Ýçinde bulunduðumuz saniye içerinse baþka bir proses çalýþýp sonlandýrýldý mý? (tempTimer!=timer)
+					  
+					  Þayet bu kontrollerden geçilirse söz konusu prosesin çalýþmasýnda herhangi bir engel olmadýðý anlamýna gelir
+					  Aslýnda bu kontrollerin hepsi yukarýda yapýlmýþtý fakat burada tekrar edilmesinin sebebi þu an içerisinde 
+					  olduðumuz saniyeden daha önce varmýþ ve çalýþmak için hazýrda bekleyen proseslere çalýþma imkaný sunmaktýr.*/
+					{
+						try {
+							//Kontrollerden geçen proses çalýþtýrýlýr.
+							RunProcess(i,ProcessType.REALTIME);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+			}
+		}
+		if(UserBasedProcess1.getSize()!=0)
+		//Kuyruk dönülmden once optimizasyon amacýyla boþ olup olmadýðý kontrol ediliyor
+		{
+			for(int k=UserBasedProcess1.ilk;k<=UserBasedProcess1.son;k++) 
+			//Kullanýcý tabanlý kuyuðun elemanlarý dönülüyor
+			{
+				if(UserBasedProcess1.getir(k).ArrivalTime==timer) 
+				{
+					//O saniye içerisinde varan bir proses varsa içerisi çalýþacak.
+					try {
+						//Varan proses "READY" durumuna çekilerek çalýþmaya hazýr hale geliyor.
+						ChangeSituationOfProcess(k,ProcessSituation.READY,ProcessType.USERBASED1);
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					if(!HaveRealTimeRunningProcess()&&tempTimer!=timer)
+						/*O saniye içerisinde çalýþmakta olan bir gerçek zamanlý proses var mý? (!HaveRealTimeRunningProcess())
+						  O saniye içerisinde çalýþýp sonlanmýþ bir proses(dolayýsýyla durumu "RUNNING" deðil) var mý? (tempTimer!=timer)
+						  Bu kontrollerden geçilirse bir mani olmadýðýndan prosesin çalýþmasýna izin veriliyor. */
+					{
+						try {
+							//Kontrollerden geçen proses çalýþtýrýlýr.
+							RunProcess(k,ProcessType.USERBASED1);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						continue;
+					}
+				}
+				if((UserBasedProcess1.getir(k).ProcessSituation==ProcessSituation.READY || UserBasedProcess1.getir(k).ProcessSituation==ProcessSituation.INTERRUPTED)&&
+						!HaveRealTimeRunningProcess()&&
+						tempTimer!=timer)
+					/*Þu an üzerinde bulunduðumuz proses çalýþmaya hazýr durumda mý (UserBasedProcess1.getir(k).ProcessSituation==ProcessSituation.READY)?
+					  Þu an çalýþmakta olan baþka bir gerçek zamanlý proses var mý (!HaveRealTimeRunningProcess())?
+					  Ýçinde bulunduðumuz saniye içerinse baþka bir proses çalýþýp sonlandýrýldý mý? (tempTimer!=timer)
+					  
+					  Þayet bu kontrollerden geçilirse söz konusu prosesin çalýþmasýnda herhangi bir engel olmadýðý anlamýna gelir
+					  Aslýnda bu kontrollerin hepsi yukarýda yapýlmýþtý fakat burada tekrar edilmesinin sebebi þu an içerisinde 
+					  olduðumuz saniyeden daha önce varmýþ ve çalýþmak için hazýrda bekleyen proseslere çalýþma imkaný sunmaktýr.*/
+						{
+							try {
+								RunProcess(k,ProcessType.USERBASED1);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+			}
+		}
+		if(UserBasedProcess2.getSize()!=0)
+		{
+			//Kuyruk dönülmden once optimizasyon amacýyla boþ olup olmadýðý kontrol ediliyor
+			for(int k=UserBasedProcess2.ilk;k<=UserBasedProcess2.son;k++) 
+			//Kullanýcý tabanlý kuyuðun elemanlarý dönülüyor
+			{
+				if(UserBasedProcess2.getir(k).ArrivalTime==timer) 
+				{
+					//O saniye içerisinde varan bir proses varsa içerisi çalýþacak.
+					if(UserBasedProcess2.getir(k).ProcessSituation!=ProcessSituation.READY)
+					//Proses zaten hazýr durumunda ise içeri girilmeyecek.
+						try {
+							//Proses hazýr duruma getiriliyor.
+							ChangeSituationOfProcess(k,ProcessSituation.READY,ProcessType.USERBASED2);
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					if(!HaveRealTimeRunningProcess()&&tempTimer!=timer&&UserBasedProcess1.getSize()==0)
+					{
+						/*O saniye içerisinde çalýþmakta olan bir gerçek zamanlý proses var mý? (!HaveRealTimeRunningProcess())
+						  O saniye içerisinde çalýþýp sonlanmýþ bir proses(dolayýsýyla durumu "RUNNING" deðil) var mý? (tempTimer!=timer)
+						  Öncelik deðeri "1" olan prosesler tükendi mi? (UserBasedProcess1.getSize()==0)
+						  Bu kontrollerden geçilirse bir mani olmadýðýndan prosesin çalýþmasýna izin veriliyor. */
+						try {
+							//Kontrollerden geçen proses çalýþtýrýlýr.
+							RunProcess(k,ProcessType.USERBASED2);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						continue;
+					}
+				}
+				if((UserBasedProcess2.getir(k).ProcessSituation==ProcessSituation.READY || UserBasedProcess2.getir(k).ProcessSituation==ProcessSituation.INTERRUPTED) &&
+						!HaveRealTimeRunningProcess()&&
+						tempTimer!=timer&&UserBasedProcess1.getSize()==0)
+					/*Þu an üzerinde bulunduðumuz proses çalýþmaya hazýr durumda mý ? (UserBasedProcess2.getir(k).ProcessSituation==ProcessSituation.READY)
+					  Þu an çalýþmakta olan baþka bir gerçek zamanlý proses var mý ? (!HaveRealTimeRunningProcess())
+					  Ýçinde bulunduðumuz saniye içerinse baþka bir proses çalýþýp sonlandýrýldý mý? (tempTimer!=timer)
+					  Öncelik deðeri "1" olan prosesler tükendi mi? (UserBasedProcess1.getSize()==0) (UserBasedProcess1.getSize()==0)
+					  
+					  Þayet bu kontrollerden geçilirse söz konusu prosesin çalýþmasýnda herhangi bir engel olmadýðý anlamýna gelir
+					  Aslýnda bu kontrollerin hepsi yukarýda yapýlmýþtý fakat burada tekrar edilmesinin sebebi þu an içerisinde 
+					  olduðumuz saniyeden daha önce varmýþ ve çalýþmak için hazýrda bekleyen proseslere çalýþma imkaný sunmaktýr.*/
+						{
+							try {
+								//Kontrollerden geçen proses çalýþtýrýlýr.
+								RunProcess(k,ProcessType.USERBASED2);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+			}
+		}
+		if(UserBasedProcess3.getSize()!=0)
+			//Kuyruk dönülmden once optimizasyon amacýyla boþ olup olmadýðý kontrol ediliyor
+		{
+			for(int k=UserBasedProcess3.ilk;k<=UserBasedProcess3.son;k++) 
+				//Kullanýcý tabanlý kuyuðun elemanlarý dönülüyor
+			{
+				if(UserBasedProcess3.getir(k).ArrivalTime==timer) 
+					//O saniye içerisinde varan bir proses varsa içerisi çalýþacak.
+				{
+					if(UserBasedProcess3.getir(k).ProcessSituation!=ProcessSituation.READY)
+						//Proses zaten hazýr durumunda ise içeri girilmeyecek.
+						try {
+							//Proses hazýr duruma getiriliyor.
+							ChangeSituationOfProcess(k,ProcessSituation.READY,ProcessType.USERBASED3);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					if(!HaveRealTimeRunningProcess()&&tempTimer!=timer&&UserBasedProcess1.getSize()==0&&UserBasedProcess2.getSize()==0)
+						/*O saniye içerisinde çalýþmakta olan bir gerçek zamanlý proses var mý? (!HaveRealTimeRunningProcess())
+						  O saniye içerisinde çalýþýp sonlanmýþ bir proses(dolayýsýyla durumu "RUNNING" deðil) var mý? (tempTimer!=timer)
+						  Öncelik deðeri "1" olan prosesler tükendi mi? (UserBasedProcess1.getSize()==0)
+						  Öncelik deðeri "2" olan prosesler tükendi mi? (UserBasedProcess2.getSize()==0)
+						  Bu kontrollerden geçilirse bir mani olmadýðýndan prosesin çalýþmasýna izin veriliyor. */
+					{
+						try {
+							//Proses hazýr duruma getiriliyor
+							RunProcess(k,ProcessType.USERBASED3);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						continue;
+					}
+				}
+				if((UserBasedProcess3.getir(k).ProcessSituation==ProcessSituation.READY || UserBasedProcess3.getir(k).ProcessSituation==ProcessSituation.INTERRUPTED) &&
+						!HaveRealTimeRunningProcess()&&
+						tempTimer!=timer&&UserBasedProcess1.getSize()==0&&UserBasedProcess2.getSize()==0)
+					/*Þu an üzerinde bulunduðumuz proses çalýþmaya hazýr durumda mý ? (UserBasedProcess2.getir(k).ProcessSituation==ProcessSituation.READY)
+					  Þu an çalýþmakta olan baþka bir gerçek zamanlý proses var mý ? (!HaveRealTimeRunningProcess())
+					  Ýçinde bulunduðumuz saniye içerinse baþka bir proses çalýþýp sonlandýrýldý mý? (tempTimer!=timer)
+					  Öncelik deðeri "1" olan prosesler tükendi mi? (UserBasedProcess1.getSize()==0) (UserBasedProcess1.getSize()==0)
+					  Öncelik deðeri "2" olan prosesler tükendi mi? (UserBasedProcess2.getSize()==0)
+					  
+					  Þayet bu kontrollerden geçilirse söz konusu prosesin çalýþmasýnda herhangi bir engel olmadýðý anlamýna gelir
+					  Aslýnda bu kontrollerin hepsi yukarýda yapýlmýþtý fakat burada tekrar edilmesinin sebebi þu an içerisinde 
+					  olduðumuz saniyeden daha önce varmýþ ve çalýþmak için hazýrda bekleyen proseslere çalýþma imkaný sunmaktýr.*/
+						{
+							try {
+								//Proses hazýr duruma getiriliyor
+								RunProcess(k,ProcessType.USERBASED3);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+			}
+		}
+		if(RealTimeProcess.getSize()==0&&UserBasedProcess1.getSize()==0&&UserBasedProcess2.getSize()==0&&UserBasedProcess3.getSize()==0)
+		//Eðer bütün kuyruklar boþalmýþsa görevlendiricinin vazifesi noktalanmýþtýr.
+		{
+			//Zamanlayýcý durduruldu
+			Timer.cancel();
+			System.out.println("Görevlendirici Sona Erdi.");
+		}
+		
+		//Saniye sayacý bir arttýrýlýr
+		timer++;
+				
+		
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public static void RunDispatcher(Queue realTimeProcesses,Queue userBasedProcesses1,
+			Queue userBasedProcesses2,Queue userBasedProcesses3)
+	//Dsipatcher ayaða kaldýrýlýyor, zamanlayýcý baþlatýlýyor.
+	{		
+		System.out.println("Merhaba, iþleme baþlýyoruz.\n");
+		
+		//Kuyruklara atamalar yapýlýyor.
+		RealTimeProcess=realTimeProcesses;
+		UserBasedProcess1=userBasedProcesses1;
+		UserBasedProcess2=userBasedProcesses2;
+		UserBasedProcess3=userBasedProcesses3;
+
+		//Zamanlayýcý ayarlanýyor.
+		Timer = new Timer();
+		TimerTask task = new ProcessDispatcher();
+		Timer.schedule(task,0,1000);
+	}
+	
+	private Process ChangeSituationOfProcess(int index,ProcessSituation situation,ProcessType type) throws IOException 
+	//Proses durumunu set eden fonksiyon
+	{
+		Process p = new Process();
+		switch(type) 
+		{
+			case REALTIME:
+			{
+				p=RealTimeProcess.getir(index);
+				p.ProcessSituation=situation;
+				RealTimeProcess.degistir(index, p);		
+				break;
+			}
+			case USERBASED1:
+			{
+				p=UserBasedProcess1.getir(index);
+				p.ProcessSituation=situation;
+				UserBasedProcess1.degistir(index, p);	
+				break;
+			}
+			case USERBASED2:
+			{
+				p=UserBasedProcess2.getir(index);
+				p.ProcessSituation=situation;
+				UserBasedProcess2.degistir(index, p);	
+				break;
+			}
+		case USERBASED3:
+			{
+				p=UserBasedProcess3.getir(index);
+				p.ProcessSituation=situation;
+				UserBasedProcess3.degistir(index, p);	
+				break;
+			}
+		default:
+			break;
+		
+		}	
+		
+		//Prosesin yeni durumu ekrana basýlýyor.
+		PrintNewSituation(p);
+		
+		return p;		
+	}
+	private void RunProcess(int index,ProcessType type) throws IOException 
+	{			
+		Process p = new Process();	
+		switch(type) 
+		{
+		case REALTIME:
+		{		
+			p=ChangeSituationOfProcess(index,ProcessSituation.RUNNING,ProcessType.REALTIME);	
+			p.BurstTime--;
+			if(p.BurstTime==0) 
+			{
+				p=ChangeSituationOfProcess(index,ProcessSituation.TERMINATED,ProcessType.REALTIME);
+				tempTimer=timer;
+				RealTimeProcess.cikar();
+				return;
+			}
+			RealTimeProcess.degistir(index, p);
+			break;
+		}		
+		case USERBASED1:
+		{				
+			tempTimer=timer;
+			p=ChangeSituationOfProcess(index,ProcessSituation.RUNNING,ProcessType.USERBASED1);
+			p.BurstTime--;
+			if(p.BurstTime==0) 
+			{
+				p=ChangeSituationOfProcess(index,ProcessSituation.TERMINATED,ProcessType.USERBASED1);
+				UserBasedProcess1.cikar();
+				return;
+			}
+			//Son durumu tutulacak
+			p=ChangeSituationOfProcess(index,ProcessSituation.INTERRUPTED,ProcessType.USERBASED1);
+			p.Priority=2;
+			UserBasedProcess1.cikar();
+			UserBasedProcess2.ekle(p);
+			break;
+		}
+		case USERBASED2:
+		{				
+			tempTimer=timer;
+			p=ChangeSituationOfProcess(index,ProcessSituation.RUNNING,ProcessType.USERBASED2);
+			p.BurstTime--;
+			if(p.BurstTime==0) 
+			{
+				p=ChangeSituationOfProcess(index,ProcessSituation.TERMINATED,ProcessType.USERBASED2);
+				UserBasedProcess2.cikar();
+				return;
+			}
+			p=ChangeSituationOfProcess(index,ProcessSituation.INTERRUPTED,ProcessType.USERBASED2);
+			p.Priority=3;
+			UserBasedProcess2.cikar();
+			UserBasedProcess3.ekle(p);
+			break;
+		}
+		case USERBASED3:
+		{
+			tempTimer=timer;
+			p=ChangeSituationOfProcess(index,ProcessSituation.RUNNING,ProcessType.USERBASED3);
+			p.BurstTime--;
+			if(p.BurstTime==0) 
+			{
+				p=ChangeSituationOfProcess(index,ProcessSituation.TERMINATED,ProcessType.USERBASED3);
+				tempTimer=timer;
+				UserBasedProcess3.cikar();
+				return;
+			}
+			p=ChangeSituationOfProcess(index,ProcessSituation.INTERRUPTED,ProcessType.USERBASED3);
+			UserBasedProcess3.degistir(index, p);
+			UserBasedProcess3.cikar();
+			UserBasedProcess3.ekle(p);
+			break;
+		}
+		default:
+			break;		
+		}
+
+	
+	}
+	
+	//Parametre olarak index numarasý veirlen prosesin o anda çalýþmakta olup olmadýðýný kontrol eden fonksiyon
+	private boolean HaveRealTimeRunningProcess(int index) 
+	{
+		if(RealTimeProcess.getir(index).ProcessSituation==ProcessSituation.RUNNING)
+		{
+			return true;
+		}
+		else
+			return false;
+	}
+	
+	//Çalýþmakta olan bir gerçek zamanlý proses olup olmadýðýný kontrol eden fonksiyon
+	private boolean HaveRealTimeRunningProcess() 
+	{
+		for(int i=RealTimeProcess.ilk;i<=RealTimeProcess.son;i++)
+		{
+			if(RealTimeProcess.getir(i).ProcessSituation==ProcessSituation.RUNNING)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private void PrintNewSituation(Process p) throws IOException
+	{
+		switch(p.ProcessSituation) 
+		{
+		case READY:
+		{
+			String t = "prosesin durumu "+ p.ProcessSituation.name().toString() + " olarak degistirildi "+"(id:"+p.PID+"    oncelik: "+p.Priority+"  kalan sure: "+p.BurstTime +" sn)";
+			p.ExecuteProcess(p, t);
+			break;
+		}
+		case INTERRUPTED:
+		{
+			String t = "prosess askiya alindi - "+"(id:"+p.PID+"    oncelik: "+p.Priority+"  kalan sure: "+p.BurstTime +" sn)";
+			p.ExecuteProcess(p, t);
+			break;
+		}	
+		case RUNNING:
+		{				
+			String t ="proses su an yurutuluyor "+"(id:"+p.PID+"    oncelik: "+p.Priority+"  kalan sure: "+p.BurstTime +" sn)";
+			p.ExecuteProcess(p, t);		
+			break;
+		}	
+		case TERMINATED:
+		{				
+			String t ="proses sonlandirildi."+"(id:"+p.PID+"    oncelik: "+p.Priority+"  kalan sure: "+p.BurstTime +" sn)";
+			p.ExecuteProcess(p, t);				
+			break;
+		}
+			
+		default:
+			break;
+		}
+	}
+
+}

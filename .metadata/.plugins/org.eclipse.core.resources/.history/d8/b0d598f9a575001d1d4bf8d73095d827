@@ -1,0 +1,9 @@
+package dispatcher;
+
+public enum ProcessSituation {
+	READY,
+	RUNNING,
+	WAITING,
+	INTERRUPTED,
+	TERMINATED
+}

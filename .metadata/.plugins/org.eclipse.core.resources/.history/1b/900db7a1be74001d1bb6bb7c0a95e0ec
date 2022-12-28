@@ -1,0 +1,28 @@
+package dispatcher;
+
+
+
+public class Program {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		try {
+			args[0].toString();
+		}
+		catch(Exception e)
+		{
+			System.out.println("--->>Lütfen programý komut satýrý parametresi vererek çalýþtýrýnýz.\"---<<");
+		}
+		try {
+			GeneralFunctions Run = new GeneralFunctions(args[0].toString());
+			IslemiBaslat.Run();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		}
+	
+	
+	
+
+}

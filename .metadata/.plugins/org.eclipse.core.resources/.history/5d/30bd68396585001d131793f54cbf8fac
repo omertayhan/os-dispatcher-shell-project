@@ -1,0 +1,12 @@
+package dispatcher;
+
+public class InterruptedProcess {
+	public InterruptedProcess(String pID, int interruptedTime) {
+		super();
+		PID = pID;
+		InterruptedTime = interruptedTime;
+	}
+	public String PID;
+	public int InterruptedTime;
+	public ProcessType type;
+}

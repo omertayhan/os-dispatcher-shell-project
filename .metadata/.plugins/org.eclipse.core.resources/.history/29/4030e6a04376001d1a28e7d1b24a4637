@@ -1,0 +1,7 @@
+package dispatcher;
+
+public enum ProcessType {
+	REALTIME,
+	USERBASED1,
+	USERBASED2
+}
