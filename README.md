@@ -1,2 +1,6 @@
-# TAYS
+# TAYS 
+Çoklu Programlama Sistemi
+
 Tays Ekibi olarak İşletim Sistemleri dersi için yapılmış dispatcher tasarımı Proje Ödevidir.
+
+Ödev java diliyle gerçekleştirilmiştir. Program sınıfıyla beraber toplamda 9 adet sınıf bulunmaktadır. Proses tiplerinin tutulduğu ProcessType sınıfı, proses durumlarının tutulduğu ProcessSituation sınıfı, proses’lerin tutulacağı yapı olan kuyruk yapısı için Queue sınıfı, parametre olarak verilen txt dosyasının okunması ve kuyruk içindeki proseslerin sıralanması için yazılmış metotların olduğu GeneralFunctions sınıfı, genel kuyruğa atılan proseslerin önceliklerine göre farklı kuyruklara ayrıştırılması ve ayrıştırılan kuyrukların kendi içerisinde sıralama algoritmalarını çağırdığı Interlayer sınıfı, yeni proses oluşturulması, prosesin çalıştırılması ve okunması gibi işlemlerin yapıldığı Process sınıfı, kesintiye uğramış proseslerin oluşturulması için InterruptedProcess sınıfı, dispatcher işlemlerinin yapıldığı ProcessDispatcher sınıfı ve son olarak parametre olarak verilen txt dosyasını okuyan ve gerekli işlemlerin başlatılmasını sağlayan Program sınıfı, projedeki sınıflardır. Geliştirilen Yazılım bölümünde tüm bu sınıflar ve işlevleri detaylı bir şekilde açıklanacaktır. Aynı zamanda kod içerisinde kodun anlaşılmasını kolaylaştırmak için bol sayıda açıklama satırı bulunmaktadır.
