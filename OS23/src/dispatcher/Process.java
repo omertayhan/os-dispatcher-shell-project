@@ -1,0 +1,46 @@
+package dispatcher;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class Process {//Process sýnýfý tanýmlanýyor.
+	public String PID; //Benzersiz id
+	public int ArrivalTime; //Varýþ zamaný
+	public int Priority; //Öncelik numarasý
+	public int BurstTime; //Toplam çalýþma süresi
+	public ProcessSituation ProcessSituation; //Durumu (Ready, Running, Interrupted, Terminated)
+	private ProcessBuilder ProcessBuilderInstance; //Proses icra edileceði anda gerçek iþletim sistemi prosesi baþlatan java sýnýfý
+	public String Color; //Ekrana basýlýrken hangi rengin kullanýlacapýna dair özellik
+	
+	public Process() {
+		this.ProcessBuilderInstance = new ProcessBuilder();
+	}
+	
+	public void ExecuteProcess(Process p, String message) throws IOException {
+		//Proses çalýþtýrýlýyor ve Windows iþletim sisteminde koonsol ekranýna prosese dair bilgiyi yazdýracak
+		//windows prosesi çalýþtýrýlýyor.
+		
+		ProcessBuilderInstance.command("cmd", "/c", "echo "+message);
+		java.lang.Process process = ProcessBuilderInstance.start();
+		readProcess(p,process);
+	}
+	
+	private static void readProcess(Process p,java.lang.Process process)
+	{
+		//Proses çalýþýnca gerçekleþtirilen komut okunuyor ve bilgi ekrana yazdýrýlýyor.
+		try (var reader = new BufferedReader(
+	            new InputStreamReader(process.getInputStream()))) {
+
+	            String line;
+
+	            while ((line = reader.readLine()) != null) {
+	                System.out.println(p.Color+" "+line+"\u001b[0m");
+	            }
+
+	        }catch(Exception e) {
+	        	
+	        }
+	}
+
+}
